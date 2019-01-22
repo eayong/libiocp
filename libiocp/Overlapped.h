@@ -19,6 +19,8 @@ namespace Networking
             Accept,
             Read,
             Write,
+            RecvFrom,
+            SendTo
         };
 
         // Native overlapped
@@ -32,6 +34,10 @@ namespace Networking
 
         // Current winsock buffers
         WSABUF wsa_buf;
+
+        // for udp
+        SOCKADDR_IN remote_addr;
+        int remote_addr_len;
     };
 
     // Create and prepare custom overlapped
@@ -40,6 +46,7 @@ namespace Networking
         Overlapped* overlapped = new Overlapped;
         memset(overlapped, 0, sizeof(Overlapped));
         overlapped->type = type;
+        overlapped->remote_addr_len = sizeof(overlapped->remote_addr);
         return overlapped;
     }
 

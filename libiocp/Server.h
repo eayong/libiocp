@@ -10,12 +10,22 @@
 #include <functional>
 #include <memory>
 #include <thread>
+#include <mutex>
+#include <string>
+#include <map>
 
 namespace Networking
 {
 
     class Connection;
     class Context;
+
+    struct ClientInfo
+    {
+        std::string address;
+        int port;
+        Connection *conn;
+    };
 
     // Asynchronous Tcp server based on IO Completion ports
     class Server : Utils::NonCopyable
@@ -31,6 +41,9 @@ namespace Networking
         // Start async write operation
         bool AsyncWrite(const Connection* conn, void* data, std::size_t size);
 
+        // Start async broadcast operation
+        bool AsyncBroadcast(void* data, std::size_t size);
+
         // Start async read operation
         bool AsyncRead(const Connection* conn);
 
@@ -39,6 +52,9 @@ namespace Networking
 
         // Stop server
         void Stop();
+
+        // Show client's status
+        void Status();
 
         // Async call handlers
         virtual void OnConnected(const Networking::Connection* conn);
@@ -52,6 +68,9 @@ namespace Networking
 
         // New connections acceptor
         std::unique_ptr<Acceptor> m_acceptor;
+
+        std::map<unsigned int, ClientInfo> m_conns;
+        std::recursive_mutex m_mutex;
     };
 
 } // namespace Networking

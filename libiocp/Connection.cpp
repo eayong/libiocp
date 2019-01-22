@@ -36,6 +36,8 @@ namespace Networking
         std::unique_ptr<Overlapped> m_accept_overlapped;
         std::unique_ptr<Overlapped> m_read_overlapped;
         std::unique_ptr<Overlapped> m_write_overlapped;
+        std::unique_ptr<Overlapped> m_recvfrom_overlapped;
+        std::unique_ptr<Overlapped> m_sendto_overlapped;
     };
 
     Connection::Impl::Impl(const SOCKET& socket, Connection* owner)
@@ -48,11 +50,15 @@ namespace Networking
         , m_accept_overlapped(CreateOverlapped(Overlapped::Accept))
         , m_read_overlapped(CreateOverlapped(Overlapped::Read))
         , m_write_overlapped(CreateOverlapped(Overlapped::Write))
+        , m_recvfrom_overlapped(CreateOverlapped(Overlapped::RecvFrom))
+        , m_sendto_overlapped(CreateOverlapped(Overlapped::SendTo))
     {
         m_connect_overlapped->connection = owner;
         m_accept_overlapped->connection = owner;
         m_read_overlapped->connection = owner;
         m_write_overlapped->connection = owner;
+        m_recvfrom_overlapped->connection = owner;
+        m_sendto_overlapped->connection = owner;
     }
 
     Connection::Impl::~Impl()
@@ -89,6 +95,16 @@ namespace Networking
     Overlapped* Connection::GetConnectOverlapped() const
     {
         return m_impl->m_connect_overlapped.get();
+    }
+
+    Overlapped * Connection::GetRecvFromOverlapped() const
+    {
+        return m_impl->m_recvfrom_overlapped.get();
+    }
+
+    Overlapped * Connection::GetSendToOverlapped() const
+    {
+        return m_impl->m_sendto_overlapped.get();
     }
 
     void Connection::SetTotalBytes(std::size_t value)

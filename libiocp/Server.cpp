@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "Context.h"
 #include "Log.h"
+#include <WS2tcpip.h>
 
 namespace Networking
 {
@@ -22,7 +23,7 @@ namespace Networking
     bool Server::Init(const char * address, unsigned port)
     {
         // Initial context
-        if (!m_context->Init(address, port))
+        if (!m_context->Init(address, port, E_PROTO_TCP))
             return false;
 
         // Initial acceptor 
@@ -35,6 +36,16 @@ namespace Networking
     bool Server::AsyncWrite(const Connection * conn, void * data, std::size_t size)
     {
         return m_context->AsyncWrite(conn, data, size);
+    }
+
+    bool Server::AsyncBroadcast(void * data, std::size_t size)
+    {
+        std::unique_lock<std::recursive_mutex> lock(m_mutex);
+        for (auto &item : m_conns)
+        {
+            m_context->AsyncWrite(item.second.conn, data, size);
+        }
+        return true;
     }
 
     bool Server::AsyncRead(const Connection * conn)
@@ -52,14 +63,47 @@ namespace Networking
         m_context->Stop();
     }
 
+    void Server::Status()
+    {
+        std::unique_lock<std::recursive_mutex> lock(m_mutex);
+        std::cout << "total clients: " << m_conns.size() << std::endl << std::endl;
+        for (auto &item : m_conns)
+        {
+            std::cout << "address: " << item.second.address.c_str()
+                << ":" << item.second.port << std::endl << std::endl;
+        }
+    }
+
     void Server::OnConnected(const Connection * conn)
     {
         LOG_DEBUG("New client connected");
+        if (conn == nullptr)
+            return;
+
+        auto mutable_conn = const_cast<Networking::Connection*>(conn);
+        sockaddr_in localaddr, remoteaddr;
+        memset(&localaddr, 0, sizeof(localaddr));
+        memset(&remoteaddr, 0, sizeof(remoteaddr));
+        m_context->GetAcceptExSockaddrs(mutable_conn, (sockaddr&)localaddr, (sockaddr&)remoteaddr);
+        ClientInfo info;
+        char str[INET_ADDRSTRLEN] = { 0 };
+        inet_ntop(AF_INET, &remoteaddr.sin_addr, str, sizeof(str));
+        info.address = str;
+        info.port = ntohs(remoteaddr.sin_port);
+        info.conn = mutable_conn;
+        std::unique_lock<std::recursive_mutex> lock(m_mutex);
+        m_conns[mutable_conn->GetSocket()] = info;
     }
 
-    void Server::OnDisconnected(const Connection *)
+    void Server::OnDisconnected(const Connection * conn)
     {
         LOG_DEBUG("Client disconnected");
+        if (conn == nullptr)
+            return;
+        auto mutable_conn = const_cast<Networking::Connection*>(conn);
+
+        std::unique_lock<std::recursive_mutex> lock(m_mutex);
+        m_conns.erase(mutable_conn->GetSocket());
     }
 
     void Server::OnRead(const Connection * conn, void * data, std::size_t size)

@@ -7,6 +7,11 @@
 namespace Networking
 {
 
+    enum EProtoType
+    {
+        E_PROTO_TCP,
+        E_PROTO_UDP
+    };
     class Socket : Utils::NonCopyable
     {
     public:
@@ -15,7 +20,7 @@ namespace Networking
 
     public:
         // Initialize the socket and address
-        bool Init(const char *address, unsigned int port);
+        bool Init(const char *address, unsigned int port, EProtoType proto);
 
         // Returns native socket
         inline SOCKET& Native();
@@ -29,9 +34,8 @@ namespace Networking
         // Bind socket to NULL address. User when the socket is connecting to the server (client side)
         bool BindForConnect();
 
-    private:
         // Resolv string to really address
-        unsigned long ResolveAddress(const char *address);
+        static unsigned long ResolveAddress(const char *address);
 
     private:
         // Native socket
@@ -42,6 +46,9 @@ namespace Networking
 
         // Flag the socket was initialized
         bool m_inited;
+
+        // Socket proto type
+        EProtoType m_proto;
     };
 
     inline SOCKET & Socket::Native()

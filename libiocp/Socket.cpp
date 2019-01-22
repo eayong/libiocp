@@ -19,7 +19,7 @@ namespace Networking
         m_inited = false;
     }
 
-    bool Socket::Init(const char *address, unsigned int port)
+    bool Socket::Init(const char *address, unsigned int port, EProtoType proto)
     {
         if (m_inited)
             return true;
@@ -27,7 +27,8 @@ namespace Networking
         if (address == nullptr)
             return false;
 
-        m_socket = WSASocketW(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+        m_socket = WSASocketW(AF_INET, proto == E_PROTO_TCP ? SOCK_STREAM : SOCK_DGRAM,
+            proto == E_PROTO_TCP ? IPPROTO_TCP : IPPROTO_UDP, NULL, 0, WSA_FLAG_OVERLAPPED);
         if (m_socket == INVALID_SOCKET)
         {
             LOG_ERROR("Failed to initialize socket");

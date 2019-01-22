@@ -124,6 +124,8 @@
     <ClInclude Include="Server.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="Socket.h" />
+    <ClInclude Include="UdpClient.h" />
+    <ClInclude Include="UdpServer.h" />
     <ClInclude Include="WinSockInitializer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -134,6 +136,8 @@
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="UdpClient.cpp" />
+    <ClCompile Include="UdpServer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

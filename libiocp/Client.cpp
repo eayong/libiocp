@@ -23,7 +23,7 @@ namespace Networking
     bool Client::Init(const char * address, unsigned port)
     {
         // Initial context
-        if (!m_context->Init(address, port))
+        if (!m_context->Init(address, port, E_PROTO_TCP))
             return false;
 
         // Initial acceptor 

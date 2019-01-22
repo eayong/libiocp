@@ -9,6 +9,7 @@ namespace Networking
 {
 
     class Context;
+    class Connection;
 
     // Extending 'Context' and helps to start async Accept operation
     // (used on server side)
@@ -25,12 +26,16 @@ namespace Networking
         // Start new async Accept operation
         bool Start();
 
+        void GetAcceptExSockaddrs(Connection * conn, sockaddr &local, sockaddr &remote);
+
     private:
         // Main networking context
         Context& m_context;
 
         // AcceptEx function pointer
         LPFN_ACCEPTEX m_acceptex_func;
+
+        LPFN_GETACCEPTEXSOCKADDRS m_get_acceptex_sockaddrs_func;
     };
 
 } // namespace Networking

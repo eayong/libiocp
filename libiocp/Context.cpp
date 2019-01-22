@@ -17,7 +17,7 @@ namespace Networking
         Stop();
     }
 
-    bool Context::Init(const char* address, unsigned port)
+    bool Context::Init(const char* address, unsigned port, EProtoType proto)
     {
         if (address == nullptr)
             return false;
@@ -37,7 +37,7 @@ namespace Networking
         }
 
         // Init the socket
-        m_socket.Init(address, port);
+        m_socket.Init(address, port, proto);
 
         // Associate the socket with the completion port
         if(CreateIoCompletionPort(reinterpret_cast<HANDLE>(m_socket.Native()), m_completion_port, 0, 0) == INVALID_HANDLE_VALUE)
@@ -93,6 +93,66 @@ namespace Networking
         DWORD bytes;
         auto send_result = WSASend(mutable_conn->GetSocket(), &overlapped->wsa_buf, 1, &bytes, 0, reinterpret_cast<LPWSAOVERLAPPED>(overlapped), NULL);
 
+        if (send_result != NULL && (send_result != SOCKET_ERROR || WSAGetLastError() != WSA_IO_PENDING))
+        {
+            LOG_ERROR("Failed to send data");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool Context::AsyncRecvFrom(const Connection * conn)
+    {
+        if (conn == nullptr)
+            return false;
+
+        auto overlapped = conn->GetRecvFromOverlapped();
+        overlapped->wsa_buf.len = overlapped->connection->ReadBufferSize;
+        overlapped->wsa_buf.buf = reinterpret_cast<CHAR*>(overlapped->connection->GetReadBuffer());
+
+        DWORD flags = 0;
+        DWORD bytes_transferred = 0;
+        auto recv_result = WSARecvFrom(overlapped->connection->GetSocket(),
+            &overlapped->wsa_buf, 1, &bytes_transferred, &flags,
+            (SOCKADDR*)&(overlapped->remote_addr), &(overlapped->remote_addr_len),
+            reinterpret_cast<LPWSAOVERLAPPED>(overlapped), NULL);
+        if (recv_result == NULL || (recv_result == SOCKET_ERROR && WSAGetLastError() == WSA_IO_PENDING))
+        {
+            return true;
+        }
+
+        LOG_ERROR("Failed to receive data");
+        return false;
+    }
+
+    bool Context::AsyncSendTo(const Connection * conn, void * data, std::size_t size,
+        SOCKADDR_IN & remote_addr)
+    {
+        if (conn == nullptr || data == nullptr)
+            return false;
+
+        auto mutable_conn = const_cast<Connection*>(conn);
+
+        if (mutable_conn->GetWriteBufferSize() < size)
+            mutable_conn->ResizeWriteBuffer(size);
+
+        memcpy_s(mutable_conn->GetWriteBuffer(), mutable_conn->GetWriteBufferSize(), data, size);
+
+        mutable_conn->SetSentBytes(0);
+        mutable_conn->SetTotalBytes(size);
+
+        auto overlapped = mutable_conn->GetSendToOverlapped();
+        overlapped->wsa_buf.len = size;
+        overlapped->wsa_buf.buf = reinterpret_cast<CHAR*>(mutable_conn->GetWriteBuffer());
+
+        DWORD bytes = 0;
+        overlapped->remote_addr = remote_addr;
+        overlapped->remote_addr_len = sizeof(remote_addr);
+        auto send_result = WSASendTo(mutable_conn->GetSocket(),
+            &overlapped->wsa_buf, 1, &bytes, 0,
+            (SOCKADDR*)&(overlapped->remote_addr), overlapped->remote_addr_len,
+            reinterpret_cast<LPWSAOVERLAPPED>(overlapped), NULL);
         if (send_result != NULL && (send_result != SOCKET_ERROR || WSAGetLastError() != WSA_IO_PENDING))
         {
             LOG_ERROR("Failed to send data");
@@ -161,7 +221,6 @@ namespace Networking
 
                 if (m_on_connected)
                     m_on_connected(overlapped->connection);
-
                 AsyncRead(overlapped->connection);
                 continue;
             }
@@ -225,6 +284,49 @@ namespace Networking
                 }
                 continue;
             }
+
+            if (overlapped->type == Overlapped::Type::RecvFrom)
+            {
+                // async read operation fihished
+                if (m_on_read)
+                    m_on_read(overlapped->connection, overlapped->connection->GetReadBuffer(),
+                        bytes_transferred);
+
+                AsyncRecvFrom(overlapped->connection);
+                continue;
+            }
+
+            if (overlapped->type == Overlapped::Type::SendTo)
+            {
+                // async write operation fihished or only the part
+                auto conn = overlapped->connection;
+
+                conn->SetSentBytes(conn->GetSentBytes() + bytes_transferred);
+
+                if (conn->GetSentBytes() < conn->GetTotalBytes())
+                {
+                    // need to write more
+                    overlapped->wsa_buf.len = conn->GetTotalBytes() - conn->GetSentBytes();
+                    overlapped->wsa_buf.buf = reinterpret_cast<CHAR*>(conn->GetWriteBuffer()) + conn->GetSentBytes();
+
+                    auto send_result = WSASendTo(conn->GetSocket(),
+                        &overlapped->wsa_buf, 1, &bytes_transferred, 0,
+                        (SOCKADDR*)&(overlapped->remote_addr), overlapped->remote_addr_len,
+                        reinterpret_cast<LPWSAOVERLAPPED>(overlapped), NULL);
+                    if (send_result != NULL && (send_result != SOCKET_ERROR
+                        || WSAGetLastError() != WSA_IO_PENDING))
+                    {
+                        LOG_ERROR("Failed to send data");
+                    }
+                }
+                else
+                {
+                    // async write operation fully completed
+                    if (m_on_write)
+                        m_on_write(overlapped->connection, bytes_transferred);
+                }
+                continue;
+            }
         }
         LOG_ERROR("Exit with error code: " << WSAGetLastError());
     }
@@ -232,6 +334,12 @@ namespace Networking
     Socket& Context::GetSocket()
     {
         return m_socket;
+    }
+
+    void Context::GetAcceptExSockaddrs(Connection * conn, sockaddr & local, sockaddr & remote)
+    {
+        if (m_acceptor)
+            return m_acceptor->GetAcceptExSockaddrs(conn, local, remote);
     }
 
     HANDLE Context::GetCompletionPort()

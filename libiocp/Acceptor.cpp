@@ -41,6 +41,15 @@ namespace Networking
             LOG_ERROR("Failed to get AcceptEx function address");
             return false;
         }
+        acceptex_guid = WSAID_GETACCEPTEXSOCKADDRS;
+        if (WSAIoctl(m_context.GetSocket().Native(), SIO_GET_EXTENSION_FUNCTION_POINTER,
+            &acceptex_guid, sizeof(acceptex_guid),
+            &m_get_acceptex_sockaddrs_func, sizeof(m_get_acceptex_sockaddrs_func),
+            &bytes_returned, NULL, NULL) != 0)
+        {
+            LOG_ERROR("Failed to get GetAcceptExSockaddrs function address");
+            return false;
+        }
         m_context.m_acceptor = this;
         return true;
     }
@@ -79,6 +88,21 @@ namespace Networking
         new_connection.release();
 
         return  true;
+    }
+
+    void Acceptor::GetAcceptExSockaddrs(Connection * conn, sockaddr & local, sockaddr & remote)
+    {
+        int local_len = sizeof(local);
+        int remote_len = sizeof(remote);
+        m_get_acceptex_sockaddrs_func(
+            conn->GetReadBuffer(),
+            0,
+            sizeof(sockaddr_in) + 16,
+            sizeof(sockaddr_in) + 16,
+            (SOCKADDR **)&local,
+            &local_len,
+            (SOCKADDR **)&remote,
+            &remote_len);
     }
 
 } // namespace Networking

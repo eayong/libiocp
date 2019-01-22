@@ -57,6 +57,12 @@
     <ClInclude Include="Socket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="UdpClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="UdpServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Socket.cpp">
@@ -78,6 +84,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Client.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UdpClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="UdpServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

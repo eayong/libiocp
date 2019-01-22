@@ -44,7 +44,7 @@ namespace Networking
         static const std::size_t WaittingMilliSec = 1000;
 
        // Initialize context with address and port
-        bool Init(const char* address, unsigned port);
+        bool Init(const char* address, unsigned port, EProtoType proto);
 
        // Start async read operation
         bool AsyncRead(const Connection* conn);
@@ -52,11 +52,23 @@ namespace Networking
        // Start async write operation
         bool AsyncWrite(const Connection* conn, void* data, std::size_t size);
 
+        // Start async recvfrom operation
+        bool AsyncRecvFrom(const Connection* conn);
+
+        // Start async sendto operation
+        bool AsyncSendTo(const Connection* conn, void* data, std::size_t size,
+            SOCKADDR_IN &remote_addr);
+
         // Start to run server
         void Start();
 
         // Stop server
         void Stop();
+
+        // Get socket
+        Socket& GetSocket();
+
+        void GetAcceptExSockaddrs(Connection * conn, sockaddr &local, sockaddr &remote);
 
         // OnWrite callback called when data was successfully transferred via socket
         inline void SetOnWriteCallback(Callback::OnWrite callback);
@@ -71,8 +83,6 @@ namespace Networking
         inline void SetOnDisconnectedCallback(Callback::OnDisconnected callback);
 
     private:
-       // Get socket
-        Socket& GetSocket();
 
        // Get completion port handle
         HANDLE GetCompletionPort();

@@ -61,6 +61,12 @@ namespace Networking
         // Gets system overlapped for async write request
         Overlapped* GetWriteOverlapped() const;
 
+        // Gets system overlapped for async recvfrom request
+        Overlapped* GetRecvFromOverlapped() const;
+
+        // Gets system overlapped for async sendto request
+        Overlapped* GetSendToOverlapped() const;
+
     private:
         class Impl;
         std::unique_ptr<Impl> m_impl;

@@ -204,13 +204,25 @@ namespace Networking
         ULONG_PTR completion_key = 0;
         DWORD Flags = 0;
         Overlapped* overlapped = nullptr;
-
+        int error = 0;
         while (m_running)
         {
             GetQueuedCompletionStatus(m_completion_port, &bytes_transferred, &completion_key, reinterpret_cast<LPOVERLAPPED*>(&overlapped), INFINITE);
             if (!overlapped)
             {
                 break;
+            }
+
+            error = WSAGetLastError();
+            if (error == WSA_IO_PENDING)
+            {
+                continue;
+            }
+            if (error != 0)
+            {
+                if (m_on_disconnected)
+                    m_on_disconnected(overlapped->connection);
+                continue;
             }
 
             if (overlapped->type == Overlapped::Type::Accept)

@@ -81,15 +81,26 @@ namespace Networking
             return;
 
         auto mutable_conn = const_cast<Networking::Connection*>(conn);
-        sockaddr_in localaddr, remoteaddr;
-        memset(&localaddr, 0, sizeof(localaddr));
-        memset(&remoteaddr, 0, sizeof(remoteaddr));
-        m_context->GetAcceptExSockaddrs(mutable_conn, (sockaddr&)localaddr, (sockaddr&)remoteaddr);
         ClientInfo info;
-        char str[INET_ADDRSTRLEN] = { 0 };
-        inet_ntop(AF_INET, &remoteaddr.sin_addr, str, sizeof(str));
-        info.address = str;
-        info.port = ntohs(remoteaddr.sin_port);
+        sockaddr_in remoteaddr;
+        int len = sizeof(remoteaddr);
+        memset(&remoteaddr, 0, sizeof(remoteaddr));
+        if (setsockopt(mutable_conn->GetSocket(),
+            SOL_SOCKET,
+            SO_UPDATE_ACCEPT_CONTEXT,
+            (char *)&m_context->GetSocket().Native(),
+            sizeof(m_context->GetSocket().Native())) != 0)
+        {
+            LOG_ERROR("Failed to setsockopt SO_UPDATE_ACCEPT_CONTEXT");
+            return;
+        }
+        if (getpeername(mutable_conn->GetSocket(), (sockaddr*)&remoteaddr, &len) == 0)
+        {
+            char str[INET_ADDRSTRLEN] = { 0 };
+            inet_ntop(AF_INET, &remoteaddr.sin_addr, str, sizeof(str));
+            info.address = str;
+            info.port = ntohs(remoteaddr.sin_port);
+        }
         info.conn = mutable_conn;
         std::unique_lock<std::recursive_mutex> lock(m_mutex);
         m_conns[mutable_conn->GetSocket()] = info;
@@ -97,7 +108,7 @@ namespace Networking
 
     void Server::OnDisconnected(const Connection * conn)
     {
-        LOG_DEBUG("Client disconnected");
+        LOG_DEBUG("Client disconnected, error: " << WSAGetLastError());
         if (conn == nullptr)
             return;
         auto mutable_conn = const_cast<Networking::Connection*>(conn);

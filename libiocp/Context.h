@@ -68,6 +68,7 @@ namespace Networking
         // Get socket
         Socket& GetSocket();
 
+        // unable
         void GetAcceptExSockaddrs(Connection * conn, sockaddr &local, sockaddr &remote);
 
         // OnWrite callback called when data was successfully transferred via socket

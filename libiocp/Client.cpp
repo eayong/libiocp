@@ -62,12 +62,11 @@ namespace Networking
         LOG_DEBUG("Connect to server successed.");
         auto mutable_conn = const_cast<Connection*>(conn);
         m_connection.reset(new Connection(mutable_conn->GetSocket()));
-        AsyncRead();
     }
 
     void Client::OnDisconnected(const Connection *)
     {
-        LOG_DEBUG("Connection disconnected");
+        LOG_DEBUG("Connection disconnected, error: " << WSAGetLastError() );
     }
 
     void Client::OnRead(const Connection * conn, void * data, std::size_t size)

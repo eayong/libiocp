@@ -25,6 +25,10 @@ namespace Networking
 
         typedef std::function<void(const Connection*, void*, std::size_t)> OnRead;
 
+        typedef std::function<void(const Connection*, std::size_t, sockaddr*)> OnSendTo;
+
+        typedef std::function<void(const Connection*, void*, std::size_t, sockaddr*)> OnRecvFrom;
+
         typedef std::function<void(const Connection*)> OnConnected;
 
         typedef std::function<void(const Connection*)> OnDisconnected;
@@ -71,11 +75,17 @@ namespace Networking
         // unable
         void GetAcceptExSockaddrs(Connection * conn, sockaddr &local, sockaddr &remote);
 
-        // OnWrite callback called when data was successfully transferred via socket
+        // OnSendTo callback called when data was successfully transferred via socket
         inline void SetOnWriteCallback(Callback::OnWrite callback);
 
-        // OnRead callback called when data was successfully read from socket
+        // OnRecvFrom callback called when data was successfully read from socket
         inline void SetOnReadCallback(Callback::OnRead callback);
+
+        // OnSendTo callback called when data was successfully read from socket
+        inline void SetOnSendToCallback(Callback::OnSendTo callback);
+
+        // OnRecvFrom callback called when data was successfully read from socket
+        inline void SetOnRecvFromCallback(Callback::OnRecvFrom callback);
 
         // OnClientConnected callback called when new client connected to listening socket
         inline void SetOnConnectedCallback(Callback::OnConnected callback);
@@ -112,6 +122,8 @@ namespace Networking
 
         Callback::OnWrite m_on_write;
         Callback::OnRead m_on_read;
+        Callback::OnSendTo m_on_sendto;
+        Callback::OnRecvFrom m_on_recvfrom;
         Callback::OnConnected m_on_connected;
         Callback::OnDisconnected m_on_disconnected;
     };
@@ -124,6 +136,16 @@ namespace Networking
     inline void Context::SetOnReadCallback(Callback::OnRead callback)
     {
         m_on_read = callback;
+    }
+
+    inline void Context::SetOnSendToCallback(Callback::OnSendTo callback)
+    {
+        m_on_sendto = callback;
+    }
+
+    inline void Context::SetOnRecvFromCallback(Callback::OnRecvFrom callback)
+    {
+        m_on_recvfrom = callback;
     }
 
     inline void Context::SetOnConnectedCallback(Callback::OnConnected callback)

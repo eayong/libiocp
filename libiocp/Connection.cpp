@@ -63,9 +63,9 @@ namespace Networking
 
     Connection::Impl::~Impl()
     {
-        if (m_socket)
+        if (m_socket != INVALID_SOCKET)
             closesocket(m_socket);
-        m_socket = NULL;
+        m_socket = INVALID_SOCKET;
     }
 
     Connection::Connection(const SOCKET& socket)
@@ -151,5 +151,9 @@ namespace Networking
     SOCKET& Connection::GetSocket()
     {
         return m_impl->m_socket;
+    }
+    void Connection::DetachedSocket()
+    {
+        m_impl->m_socket = INVALID_SOCKET;
     }
 }

@@ -13,6 +13,7 @@
 #include <mutex>
 #include <string>
 #include <map>
+#include <list>
 
 namespace Networking
 {
@@ -55,6 +56,9 @@ namespace Networking
 
         // Show client's status
         void Status();
+
+        // Get client's info
+        void GetClients(std::list<ClientInfo> &clients);
 
         // Async call handlers
         virtual void OnConnected(const Networking::Connection* conn);

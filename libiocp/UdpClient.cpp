@@ -9,10 +9,10 @@ namespace Networking
         :m_context(new Context())
         , m_connection(nullptr)
     {
-        m_context->SetOnConnectedCallback(std::bind(&UdpClient::OnConnected, this, std::placeholders::_1));
-        m_context->SetOnDisconnectedCallback(std::bind(&UdpClient::OnDisconnected, this, std::placeholders::_1));
-        m_context->SetOnReadCallback(std::bind(&UdpClient::OnRead, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        m_context->SetOnWriteCallback(std::bind(&UdpClient::OnWrite, this, std::placeholders::_1, std::placeholders::_2));
+        m_context->SetOnRecvFromCallback(std::bind(&UdpClient::OnRecvFrom, this,
+            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+        m_context->SetOnSendToCallback(std::bind(&UdpClient::OnSendTo, this,
+            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     }
 
     UdpClient::~UdpClient()
@@ -24,6 +24,9 @@ namespace Networking
     {
         // Initial context
         if (!m_context->Init(address, port, E_PROTO_UDP))
+            return false;
+
+        if (!m_context->GetSocket().BindForConnect())
             return false;
 
         m_connection.reset(new Connection(m_context->GetSocket().Native()));
@@ -58,24 +61,15 @@ namespace Networking
         m_context->Stop();
     }
 
-    void UdpClient::OnConnected(const Connection * conn)
+    void UdpClient::OnRecvFrom(const Connection * conn, void * data, std::size_t size, sockaddr *addr)
     {
-        LOG_DEBUG("Connect to server successed.");
+        if (conn == nullptr || data == nullptr || addr == nullptr)
+            return;
     }
 
-    void UdpClient::OnDisconnected(const Connection *)
+    void UdpClient::OnSendTo(const Connection * conn, std::size_t bytes_transferred, sockaddr *addr)
     {
-        LOG_DEBUG("Connection disconnected");
-    }
-
-    void UdpClient::OnRead(const Connection * conn, void * data, std::size_t size)
-    {
-        LOG_DEBUG("Got new data. Size: " << size << ", data: " << data);
-    }
-
-    void UdpClient::OnWrite(const Connection * conn, std::size_t bytes_transferred)
-    {
-        LOG_DEBUG("Successfully written " << bytes_transferred << " bytes");
+        //LOG_DEBUG("Successfully written " << bytes_transferred << " bytes");
     }
 
 } // namespace Networking

@@ -25,6 +25,9 @@ namespace Networking
         // Returns socket associated with connection
         SOCKET& GetSocket();
 
+        // Detached socket for share connection
+        void DetachedSocket();
+
         // Returns read buffer ptr
         void* GetReadBuffer();
 

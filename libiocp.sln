@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.12
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libiocp", "libiocp\libiocp.vcxproj", "{91D2F063-3D90-4E29-8D32-2DB961425085}"
 EndProject
@@ -13,6 +13,16 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ServerDemo", "ServerDemo\ServerDemo.vcxproj", "{B096AA82-6B71-4FF2-8758-D1868ACE6A09}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7AE3EC44-B526-4963-8B94-F4939679DDDE} = {7AE3EC44-B526-4963-8B94-F4939679DDDE}
+		{91D2F063-3D90-4E29-8D32-2DB961425085} = {91D2F063-3D90-4E29-8D32-2DB961425085}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UdpServerDemo", "UdpServerDemo\UdpServerDemo.vcxproj", "{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{91D2F063-3D90-4E29-8D32-2DB961425085} = {91D2F063-3D90-4E29-8D32-2DB961425085}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UdpClientDemo", "UdpClientDemo\UdpClientDemo.vcxproj", "{7461C072-8D17-437A-90E1-6383FBF223D5}"
+	ProjectSection(ProjectDependencies) = postProject
 		{91D2F063-3D90-4E29-8D32-2DB961425085} = {91D2F063-3D90-4E29-8D32-2DB961425085}
 	EndProjectSection
 EndProject
@@ -48,6 +58,22 @@ Global
 		{B096AA82-6B71-4FF2-8758-D1868ACE6A09}.Release|x64.Build.0 = Release|x64
 		{B096AA82-6B71-4FF2-8758-D1868ACE6A09}.Release|x86.ActiveCfg = Release|Win32
 		{B096AA82-6B71-4FF2-8758-D1868ACE6A09}.Release|x86.Build.0 = Release|Win32
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Debug|x64.ActiveCfg = Debug|x64
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Debug|x64.Build.0 = Debug|x64
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Debug|x86.ActiveCfg = Debug|Win32
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Debug|x86.Build.0 = Debug|Win32
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Release|x64.ActiveCfg = Release|x64
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Release|x64.Build.0 = Release|x64
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Release|x86.ActiveCfg = Release|Win32
+		{D1D6CD5F-0DEC-405A-B765-EF4743DDA74F}.Release|x86.Build.0 = Release|Win32
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Debug|x64.ActiveCfg = Debug|x64
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Debug|x64.Build.0 = Debug|x64
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Debug|x86.ActiveCfg = Debug|Win32
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Debug|x86.Build.0 = Debug|Win32
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Release|x64.ActiveCfg = Release|x64
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Release|x64.Build.0 = Release|x64
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Release|x86.ActiveCfg = Release|Win32
+		{7461C072-8D17-437A-90E1-6383FBF223D5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

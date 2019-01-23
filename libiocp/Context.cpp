@@ -134,7 +134,8 @@ namespace Networking
 
         auto mutable_conn = const_cast<Connection*>(conn);
 
-        if (mutable_conn->GetWriteBufferSize() < size)
+        if (mutable_conn->GetWriteBufferSize() < size
+            || mutable_conn->GetWriteBuffer() == nullptr)
             mutable_conn->ResizeWriteBuffer(size);
 
         memcpy_s(mutable_conn->GetWriteBuffer(), mutable_conn->GetWriteBufferSize(), data, size);
@@ -214,11 +215,7 @@ namespace Networking
             }
 
             error = WSAGetLastError();
-            if (error == WSA_IO_PENDING)
-            {
-                continue;
-            }
-            if (error != 0)
+            if (error != 0 && error != WSA_IO_PENDING && error != ERROR_MORE_DATA)
             {
                 if (m_on_disconnected)
                     m_on_disconnected(overlapped->connection);
@@ -299,10 +296,10 @@ namespace Networking
 
             if (overlapped->type == Overlapped::Type::RecvFrom)
             {
-                // async read operation fihished
-                if (m_on_read)
-                    m_on_read(overlapped->connection, overlapped->connection->GetReadBuffer(),
-                        bytes_transferred);
+                // async recvfrom operation fihished
+                if (m_on_recvfrom)
+                    m_on_recvfrom(overlapped->connection, overlapped->connection->GetReadBuffer(),
+                        bytes_transferred, (SOCKADDR*)&(overlapped->remote_addr));
 
                 AsyncRecvFrom(overlapped->connection);
                 continue;
@@ -310,7 +307,7 @@ namespace Networking
 
             if (overlapped->type == Overlapped::Type::SendTo)
             {
-                // async write operation fihished or only the part
+                // async sendto operation fihished or only the part
                 auto conn = overlapped->connection;
 
                 conn->SetSentBytes(conn->GetSentBytes() + bytes_transferred);
@@ -333,9 +330,9 @@ namespace Networking
                 }
                 else
                 {
-                    // async write operation fully completed
-                    if (m_on_write)
-                        m_on_write(overlapped->connection, bytes_transferred);
+                    // async sendto operation fully completed
+                    if (m_on_sendto)
+                        m_on_sendto(overlapped->connection, bytes_transferred, (SOCKADDR*)&(overlapped->remote_addr));
                 }
                 continue;
             }

@@ -69,8 +69,18 @@ namespace Networking
         std::cout << "total clients: " << m_conns.size() << std::endl << std::endl;
         for (auto &item : m_conns)
         {
+            std::cout << "socketid: " << item.second.conn->GetSocket() << std::endl;
             std::cout << "address: " << item.second.address.c_str()
                 << ":" << item.second.port << std::endl << std::endl;
+        }
+    }
+
+    void Server::GetClients(std::list<ClientInfo>& clients)
+    {
+        std::unique_lock<std::recursive_mutex> lock(m_mutex);
+        for (auto &item : m_conns)
+        {
+            clients.push_back(item.second);
         }
     }
 

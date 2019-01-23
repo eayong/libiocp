@@ -40,10 +40,10 @@ namespace Networking
         void Stop();
 
         // Async call handlers
-        virtual void OnConnected(const Networking::Connection* conn);
-        virtual void OnDisconnected(const Networking::Connection* /*conn*/);
-        virtual void OnRead(const Networking::Connection* conn, void* data, std::size_t size);
-        virtual void OnWrite(const Networking::Connection* conn, std::size_t bytes_transferred);
+        virtual void OnRecvFrom(const Networking::Connection* conn,
+            void* data, std::size_t size, sockaddr *addr);
+        virtual void OnSendTo(const Networking::Connection* conn,
+            std::size_t bytes_transferred, sockaddr *addr);
 
     private:
         // Networking context

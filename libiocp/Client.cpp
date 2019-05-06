@@ -9,8 +9,8 @@ namespace Networking
         , m_connetor(new Connector(*m_context.get()))
         , m_connection(nullptr)
     {
-        m_context->SetOnConnectedCallback(std::bind(&Client::OnConnected, this, std::placeholders::_1));
-        m_context->SetOnDisconnectedCallback(std::bind(&Client::OnDisconnected, this, std::placeholders::_1));
+        m_context->SetOnConnectedCallback(std::bind(&Client::OnInnerConnected, this, std::placeholders::_1));
+        m_context->SetOnDisconnectedCallback(std::bind(&Client::OnInnerDisconnected, this, std::placeholders::_1));
         m_context->SetOnReadCallback(std::bind(&Client::OnRead, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
         m_context->SetOnWriteCallback(std::bind(&Client::OnWrite, this, std::placeholders::_1, std::placeholders::_2));
     }
@@ -60,8 +60,6 @@ namespace Networking
     void Client::OnConnected(const Connection * conn)
     {
         LOG_DEBUG("Connect to server successed.");
-        auto mutable_conn = const_cast<Connection*>(conn);
-        m_connection.reset(new Connection(mutable_conn->GetSocket()));
     }
 
     void Client::OnDisconnected(const Connection *)
@@ -77,6 +75,19 @@ namespace Networking
     void Client::OnWrite(const Connection * conn, std::size_t bytes_transferred)
     {
         LOG_DEBUG("Successfully written " << bytes_transferred << " bytes");
+    }
+
+    void Client::OnInnerConnected(const Networking::Connection * conn)
+    {
+        auto mutable_conn = const_cast<Connection*>(conn);
+        m_connection.reset(new Connection(mutable_conn->GetSocket()));
+        OnConnected(conn);
+    }
+
+    void Client::OnInnerDisconnected(const Networking::Connection * conn)
+    {
+        m_connection.release();
+        OnDisconnected(conn);
     }
 
 } // namespace Networking

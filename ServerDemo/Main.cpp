@@ -3,7 +3,11 @@
 #include <iostream>
 #include <stdlib.h>
 
+#ifdef _DEBUG
+#pragma comment(lib, "libiocp_d.lib")
+#else
 #pragma comment(lib, "libiocp.lib")
+#endif
 
 class MyServer : public Networking::Server
 {

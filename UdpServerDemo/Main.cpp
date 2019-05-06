@@ -4,7 +4,11 @@
 #include <stdlib.h>
 #include <string>
 
+#ifdef _DEBUG
+#pragma comment(lib, "libiocp_d.lib")
+#else
 #pragma comment(lib, "libiocp.lib")
+#endif
 
 class MyUdpServer : public Networking::UdpServer
 {

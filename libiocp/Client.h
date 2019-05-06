@@ -47,6 +47,10 @@ namespace Networking
         virtual void OnWrite(const Networking::Connection* conn, std::size_t bytes_transferred);
 
     private:
+        void OnInnerConnected(const Networking::Connection* conn);
+        void OnInnerDisconnected(const Networking::Connection* conn);
+
+    protected:
         // Networking context
         std::unique_ptr<Context> m_context;
 
